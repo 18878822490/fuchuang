@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 个人中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #FAF8F3;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --amber: #D4903A;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --row-h: 30px;
+  }
+  body { background: var(--bg); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; }
+  header {
+    background: white; padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .back-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--border); background: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-body { flex: 1; overflow-y: auto; padding-bottom: 24px; }
+  .profile-banner {
+    background: linear-gradient(135deg, #4A7C59 0%, #6FA882 100%);
+    padding: 28px 24px 32px;
+    display: flex; align-items: center; gap: 18px;
+    position: relative; overflow: hidden;
+  }
+  .profile-banner::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 150px; height: 150px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .profile-avatar {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px; flex-shrink: 0;
+    border: 3px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .profile-info { color: white; }
+  .profile-name { font-size: 24px; font-weight: 800; }
+  .profile-phone { font-size: 16px; opacity: 0.85; margin-top: 4px; }
+  .profile-tags {
+    display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .profile-tag {
+    background: rgba(255,255,255,0.2);
+    font-size: 13px; font-weight: 600;
+    padding: 3px 10px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .edit-btn {
+    margin-left: auto; background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.4); color: white;
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 15px; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
+    white-space: nowrap; align-self: flex-start;
+    transition: background 0.2s;
+  }
+  .edit-btn:hover { background: rgba(255,255,255,0.35); }
+  .section {
+    background: white; margin: 14px 14px 0;
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .section-head {
+    padding: 16px 18px 10px;
+    font-size: 16px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.5px; border-bottom: 1px solid var(--bg);
+  }
+  .setting-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--bg);
+    cursor: pointer; transition: background 0.2s;
+    min-height: 62px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row:hover { background: var(--bg); }
+  .row-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .ri-green { background: var(--green-light); }
+  .ri-coral { background: #FAEAE6; }
+  .ri-amber { background: #FDF3E3; }
+  .ri-blue { background: #E6EFF6; }
+  .ri-purple { background: #F0ECFA; }
+  .ri-gray { background: #F2F2F2; }
+  .row-content { flex: 1; }
+  .row-label { font-size: 18px; font-weight: 600; color: var(--text); }
+  .row-desc { font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .row-right {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .row-value { font-size: 16px; color: var(--muted); }
+  .chevron { color: var(--border); }
+  .toggle-wrap { display: flex; align-items: center; }
+  input[type="checkbox"].toggle {
+    display: none;
+  }
+  .toggle-label {
+    width: 54px; height: 30px; border-radius: 15px;
+    background: var(--border); cursor: pointer;
+    position: relative; transition: background 0.3s;
+    display: inline-block;
+  }
+  .toggle-label::after {
+    content: '';
+    width: 24px; height: 24px; border-radius: 50%;
+    background: white;
+    position: absolute; top: 3px; left: 3px;
+    transition: left 0.3s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  input[type="checkbox"].toggle:checked + .toggle-label { background: var(--green); }
+  input[type="checkbox"].toggle:checked + .toggle-label::after { left: 27px; }
+  .slider-row { flex-direction: column; align-items: stretch; cursor: default; }
+  .slider-row:hover { background: white; }
+  .slider-header { display: flex; align-items: center; gap: 12px; width: 100%; }
+  .slider-control {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0 0 54px;
+  }
+  input[type="range"] {
+    flex: 1; height: 8px; cursor: pointer;
+    accent-color: var(--green);
+  }
+  .range-val {
+    font-size: 18px; font-weight: 700; color: var(--green);
+    min-width: 36px; text-align: right;
+  }
+  .simple-mode-banner {
+    margin: 14px 14px 0;
+    background: linear-gradient(135deg, var(--amber), #E8A340);
+    border-radius: 18px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(212,144,58,0.3);
+    transition: transform 0.2s;
+  }
+  .simple-mode-banner:hover { transform: translateY(-2px); }
+  .simple-icon { font-size: 36px; flex-shrink: 0; }
+  .simple-text { flex: 1; }
+  .simple-title { font-size: 20px; font-weight: 800; color: white; }
+  .simple-desc { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 3px; }
+  .simple-toggle-wrap { flex-shrink: 0; }
+  input[type="checkbox"].toggle-big { display: none; }
+  .toggle-label-big {
+    width: 62px; height: 34px; border-radius: 17px;
+    background: rgba(255,255,255,0.3); cursor: pointer;
+    position: relative; transition: background 0.3s;
+    display: inline-block;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+  .toggle-label-big::after {
+    content: ''; width: 26px; height: 26px; border-radius: 50%;
+    background: white; position: absolute; top: 2px; left: 2px;
+    transition: left 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  input[type="checkbox"].toggle-big:checked + .toggle-label-big { background: rgba(255,255,255,0.6); }
+  input[type="checkbox"].toggle-big:checked + .toggle-label-big::after { left: 30px; }
+  .logout-btn {
+    margin: 16px 14px 0;
+    width: calc(100% - 28px); height: 54px;
+    background: white; color: var(--coral);
+    border: 2px solid #ECC4B8; border-radius: 14px;
+    font-size: 18px; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { background: #FDF2EF; border-color: var(--coral); }
+  .voice-read-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 20px; padding: 2px 4px;
+  }
+  .simple-hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='page3_menu.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+  </button>
+  <div class="header-title">个人中心</div>
+</header>
+
+<div class="page-body">
+
+  <div class="profile-banner">
+    <div class="profile-avatar">🧓</div>
+    <div class="profile-info">
+      <div class="profile-name">李奶奶</div>
+      <div class="profile-phone" id="profile-phone">138****8888</div>
+      <div class="profile-tags">
+        <span class="profile-tag">VIP用户</span>
+        <span class="profile-tag">已使用127天</span>
+      </div>
+    </div>
+    <button class="edit-btn" onclick="speakText('编辑个人资料')">编辑资料</button>
+  </div>
+
+  <div class="advice-card">
+    <div class="advice-title">晴晴为您准备的小贴士</div>
+    <div class="advice-text" id="profile-advice-text">正在从大模型为您生成专属建议，请稍候…</div>
+  </div>
+
+  <div class="simple-mode-banner" onclick="toggleSimpleMode()">
+    <div class="simple-icon">🌟</div>
+    <div class="simple-text">
+      <div class="simple-title">简化模式</div>
+      <div class="simple-desc">开启后只显示最常用的功能</div>
+    </div>
+    <div class="simple-toggle-wrap">
+      <input type="checkbox" class="toggle-big" id="simple-toggle">
+      <label class="toggle-label-big" for="simple-toggle"></label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">▪ 语音与朗读</div>
+
+    <div class="setting-row" onclick="speakText('语音朗读功能，当前已开启')">
+      <div class="row-icon ri-green">🔊</div>
+      <div class="row-content">
+        <div class="row-label">语音朗读</div>
+        <div class="row-desc">自动朗读页面文字内容</div>
+      </div>
+      <div class="row-right">
+        <div class="toggle-wrap">
+          <input type="checkbox" class="toggle" id="t-voice" checked>
+          <label class="toggle-label" for="t-voice"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-row slider-row" onclick="">
+      <div class="slider-header">
+        <div class="row-icon ri-green">🔈</div>
+        <div class="row-content">
+          <div class="row-label">朗读音量</div>
+        </div>
+        <div class="range-val" id="vol-val">80</div>
+      </div>
+      <div class="slider-control">
+        <span style="font-size:16px;color:var(--muted)">小</span>
+        <input type="range" id="vol-range" min="0" max="100" value="80" step="1"
+          oninput="updateRange('vol-val', this.value); syncVoice()">
+        <span style="font-size:16px;color:var(--muted)">大</span>
+      </div>
+    </div>
+
+    <div class="setting-row slider-row">
+      <div class="slider-header">
+        <div class="row-icon ri-amber">🐢</div>
+        <div class="row-content">
+          <div class="row-label">朗读语速</div>
+        </div>
+        <div class="range-val" id="speed-val">85</div>
+      </div>
+      <div class="slider-control">
+        <span style="font-size:16px;color:var(--muted)">慢</span>
+        <input type="range" id="speed-range" min="50" max="150" value="85" step="5"
+          oninput="updateRange('speed-val', this.value); syncVoice()">
+        <span style="font-size:16px;color:var(--muted)">快</span>
+      </div>
+    </div>
+
+    <div class="setting-row" onclick="speakText('唤醒词，当前设置为：晴晴你好')">
+      <div class="row-icon ri-coral">🎙️</div>
+      <div class="row-content">
+        <div class="row-label">语音唤醒词</div>
+        <div class="row-desc">说出唤醒词激活数字人</div>
+      </div>
+      <div class="row-right">
+        <span class="row-value">晴晴你好</span>
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="section advanced-section">
+    <div class="section-head">▪ 显示与字体</div>
+
+    <div class="setting-row slider-row">
+      <div class="slider-header">
+        <div class="row-icon ri-blue">🔤</div>
+        <div class="row-content">
+          <div class="row-label">字体大小</div>
+        </div>
+        <div class="range-val" id="font-val">18</div>
+      </div>
+      <div class="slider-control">
+        <span style="font-size:16px;color:var(--muted)">小</span>
+        <input type="range" id="font-range" min="14" max="24" value="18" step="1"
+          oninput="updateRange('font-val', this.value)">
+        <span style="font-size:16px;color:var(--muted)">大</span>
+      </div>
+    </div>
+
+    <div class="setting-row" onclick="speakText('高对比度模式，增强文字可读性')">
+      <div class="row-icon ri-gray">🌓</div>
+      <div class="row-content">
+        <div class="row-label">高对比度模式</div>
+        <div class="row-desc">增强文字与背景对比</div>
+      </div>
+      <div class="row-right">
+        <div class="toggle-wrap">
+          <input type="checkbox" class="toggle" id="t-contrast">
+          <label class="toggle-label" for="t-contrast"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-row" onclick="speakText('夜间护眼模式，减少蓝光')">
+      <div class="row-icon ri-amber">🌙</div>
+      <div class="row-content">
+        <div class="row-label">夜间护眼模式</div>
+        <div class="row-desc">晚间自动调暖色调</div>
+      </div>
+      <div class="row-right">
+        <div class="toggle-wrap">
+          <input type="checkbox" class="toggle" id="t-night">
+          <label class="toggle-label" for="t-night"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section advanced-section">
+    <div class="section-head">▪ 安全与隐私</div>
+
+    <div class="setting-row" onclick="speakText('子女监护绑定，管理子女账号关联')">
+      <div class="row-icon ri-coral">👨‍👩‍👧</div>
+      <div class="row-content">
+        <div class="row-label">子女监护绑定</div>
+        <div class="row-desc">已绑定2位家庭成员</div>
+      </div>
+      <div class="row-right">
+        <span class="row-value">管理</span>
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="setting-row" onclick="speakText('隐私保护设置')">
+      <div class="row-icon ri-purple">🔒</div>
+      <div class="row-content">
+        <div class="row-label">隐私保护</div>
+        <div class="row-desc">数据使用与授权管理</div>
+      </div>
+      <div class="row-right">
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="doLogout()">退出登录</button>
+
+</div>
+
+<script>
+function setPhoneMask(phone) {
+  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+}
+
+function updateRange(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+let voiceRate = 0.85;
+let voiceVolume = 0.8;
+
+function syncVoice() {
+  voiceRate = document.getElementById('speed-range').value / 100;
+  voiceVolume = document.getElementById('vol-range').value / 100;
+  updateSettings({ vol: document.getElementById('vol-range').value, speed: document.getElementById('speed-range').value });
+}
+
+function applyPreferences(settings) {
+  document.body.style.fontSize = `${settings.fontSize || 18}px`;
+  document.body.style.backgroundColor = settings.nightMode ? '#2B2B2B' : '#FAF8F3';
+  document.body.style.color = settings.nightMode ? '#F5F5F5' : '#2D2D2D';
+  document.body.classList.toggle('high-contrast', settings.contrastMode);
+}
+
+async function updateSettings(payload) {
+  try {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (error) {
+    console.warn('保存设置失败', error);
+  }
+}
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = voiceRate;
+    u.volume = voiceVolume;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+let simpleMode = false;
+function toggleSimpleMode() {
+  simpleMode = !simpleMode;
+  document.getElementById('simple-toggle').checked = simpleMode;
+  const advanced = document.querySelectorAll('.advanced-section');
+  advanced.forEach(el => el.classList.toggle('simple-hidden', simpleMode));
+  updateSettings({ simpleMode });
+  speakText(simpleMode ? '已开启简化模式，现在只显示最常用的功能' : '已关闭简化模式，显示全部功能');
+}
+
+document.querySelectorAll('.setting-row').forEach(row => {
+  row.addEventListener('click', function() {
+    const label = this.querySelector('.row-label');
+    if (label) {
+      speakText(label.textContent);
+    }
+  });
+});
+
+function doLogout() {
+  speakText('确认退出登录？');
+  if (confirm('确定要退出登录吗？')) {
+    localStorage.removeItem('loggedIn');
+    speakText('已退出登录，期待您下次回来！');
+    setTimeout(() => window.location.href = 'page1_login.html', 1500);
+  }
+}
+
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+async function loadProfileSettings() {
+  checkLogin();
+  try {
+    const [profileRes, settingsRes] = await Promise.all([fetch('/api/profile'), fetch('/api/settings')]);
+    const profileData = await profileRes.json();
+    const settingsData = await settingsRes.json();
+    if (profileRes.ok && profileData.ok) {
+      const profile = profileData.profile;
+      document.getElementById('profile-phone').textContent = setPhoneMask(profile.phone);
+      document.querySelector('.profile-name').textContent = profile.name;
+      document.querySelector('.profile-tags').innerHTML = `
+        <span class="profile-tag">${profile.vip ? 'VIP用户' : '普通用户'}</span>
+        <span class="profile-tag">已使用${profile.activeDays}天</span>`;
+    }
+    if (settingsRes.ok && settingsData.ok) {
+      const s = settingsData.settings;
+      document.getElementById('vol-range').value = s.vol;
+      document.getElementById('speed-range').value = s.speed;
+      document.getElementById('vol-val').textContent = s.vol;
+      document.getElementById('speed-val').textContent = s.speed;
+      document.getElementById('font-range').value = s.fontSize;
+      document.getElementById('font-val').textContent = s.fontSize;
+      document.getElementById('t-voice').checked = s.voiceEnabled;
+      document.getElementById('t-contrast').checked = s.contrastMode;
+      document.getElementById('t-night').checked = s.nightMode;
+      simpleMode = s.simpleMode;
+      document.getElementById('simple-toggle').checked = simpleMode;
+      document.querySelectorAll('.advanced-section').forEach(el => el.classList.toggle('simple-hidden', simpleMode));
+      applyPreferences(s);
+    }
+    try {
+      const adviceRes = await fetch('/api/profile-advice');
+      const adviceData = await adviceRes.json();
+      if (adviceRes.ok && adviceData.ok) {
+        document.getElementById('profile-advice-text').textContent = adviceData.advice;
+      }
+    } catch (error) {
+      console.warn('获取个人建议失败', error);
+    }
+  } catch (error) {
+    console.warn('加载个人设置失败', error);
+  }
+}
+
+window.addEventListener('load', loadProfileSettings);
+
+window.addEventListener('beforeunload', () => {
+  updateSettings({
+    vol: document.getElementById('vol-range').value,
+    speed: document.getElementById('speed-range').value,
+    fontSize: document.getElementById('font-range').value,
+    contrastMode: document.getElementById('t-contrast').checked,
+    nightMode: document.getElementById('t-night').checked,
+    voiceEnabled: document.getElementById('t-voice').checked,
+    simpleMode: document.getElementById('simple-toggle').checked
+  });
+});
+</script>
+</body>
+</html>

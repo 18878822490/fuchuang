@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 记忆提醒</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #F4F1EB;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body { background: var(--bg); min-height: 100vh; font-family: var(--font); }
+  header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; background: white; border-bottom: 1px solid var(--border); }
+  .back-btn { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-body { padding: 16px 16px 24px; }
+  .card { background: white; border-radius: 22px; box-shadow: 0 10px 24px rgba(0,0,0,0.06); margin-bottom: 16px; padding: 18px; }
+  .card-title { font-size: 18px; font-weight: 700; color: var(--green); margin-bottom: 14px; }
+  .card-desc { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
+  .form-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .form-row label { font-size: 14px; color: var(--text); }
+  .form-row input, .form-row textarea { width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; font-size: 15px; outline: none; }
+  .form-row textarea { resize: vertical; min-height: 90px; }
+  .btn { width: 100%; border: none; border-radius: 14px; padding: 14px 0; font-size: 16px; font-weight: 700; color: white; background: var(--green); cursor: pointer; }
+  .btn-secondary { background: var(--green-light); color: var(--green); }
+  .list-item { border: 1px solid var(--border); border-radius: 18px; padding: 14px; margin-bottom: 12px; background: #FFF; }
+  .list-item strong { display: block; margin-bottom: 8px; color: var(--text); }
+  .list-item small { display: block; color: var(--muted); margin-top: 4px; }
+  .empty-tip { color: var(--muted); font-size: 15px; line-height: 1.8; }
+  .quick-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .quick-btn { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 14px 12px; text-align: center; cursor: pointer; color: var(--text); }
+  .quick-btn:hover { border-color: var(--green); }
+</style>
+</head>
+<body>
+<header>
+  <button class="back-btn" onclick="window.location.href='page3_menu.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+  </button>
+  <div class="header-title">记忆提醒</div>
+</header>
+<div class="page-body">
+  <div class="card">
+    <div class="card-title">记录待办与生活事实</div>
+    <div class="card-desc">晴晴会记住您提到的服药、就医、亲友聚会和习惯安排，并在需要时主动提醒您。</div>
+    <div class="form-row">
+      <label for="memory-text">添加记忆 / 事实</label>
+      <textarea id="memory-text" placeholder="例如：明天上午10点要去医院复查血压"></textarea>
+    </div>
+    <div class="form-row">
+      <button class="btn" onclick="addMemory()">保存记忆</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">设置提醒</div>
+    <div class="card-desc">为重要日程和习惯设置提醒，让晴晴准时来唤醒您。</div>
+    <div class="form-row">
+      <label for="reminder-text">提醒内容</label>
+      <textarea id="reminder-text" placeholder="例如：下午3点吃药"></textarea>
+    </div>
+    <div class="form-row">
+      <label for="reminder-time">提醒时间</label>
+      <input id="reminder-time" type="datetime-local" />
+    </div>
+    <div class="form-row">
+      <button class="btn" onclick="addReminder()">保存提醒</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">我的记忆</div>
+    <div id="memory-list"></div>
+    <div class="empty-tip" id="memory-empty">当前还没有记录，试试添加新的待办或习惯。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">我的提醒</div>
+    <div id="reminder-list"></div>
+    <div class="empty-tip" id="reminder-empty">还没有设置提醒，晴晴可以帮助您记住重要时间。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">快速入口</div>
+    <div class="quick-btn-row">
+      <button class="quick-btn" onclick="window.location.href='page2_main.html'">回到陪伴</button>
+      <button class="quick-btn" onclick="window.location.href='page4_customize.html'">换装形象</button>
+    </div>
+  </div>
+</div>
+<script>
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+function formatTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return date.toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderList(list, containerId, emptyId) {
+  const container = document.getElementById(containerId);
+  const empty = document.getElementById(emptyId);
+  if (!list || list.length === 0) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  container.innerHTML = list.map(item => `
+    <div class="list-item">
+      <strong>${item.text}</strong>
+      <small>记录时间：${formatTime(item.createdAt)}</small>
+      ${item.time ? `<small>提醒时间：${formatTime(item.time)}</small>` : ''}
+    </div>
+  `).join('');
+}
+
+async function loadMemoryPage() {
+  try {
+    const [memRes, remRes] = await Promise.all([fetch('/api/memories'), fetch('/api/reminders')]);
+    const memData = memRes.ok ? await memRes.json() : { memories: [] };
+    const remData = remRes.ok ? await remRes.json() : { reminders: [] };
+    renderList(memData.memories || [], 'memory-list', 'memory-empty');
+    renderList(remData.reminders || [], 'reminder-list', 'reminder-empty');
+  } catch (error) {
+    console.warn('加载记忆提醒失败', error);
+  }
+}
+
+async function addMemory() {
+  const text = document.getElementById('memory-text').value.trim();
+  if (!text) {
+    alert('请输入记忆内容');
+    return;
+  }
+  try {
+    const response = await fetch('/api/memories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.message || '保存失败');
+    document.getElementById('memory-text').value = '';
+    loadMemoryPage();
+    speakText('已为您记录该事项，晴晴会记住它');
+  } catch (error) {
+    console.warn(error);
+    alert('保存失败，请稍后再试');
+  }
+}
+
+async function addReminder() {
+  const text = document.getElementById('reminder-text').value.trim();
+  const time = document.getElementById('reminder-time').value;
+  if (!text || !time) {
+    alert('请填写提醒内容和时间');
+    return;
+  }
+  try {
+    const response = await fetch('/api/reminders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, time })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.message || '设置失败');
+    document.getElementById('reminder-text').value = '';
+    document.getElementById('reminder-time').value = '';
+    loadMemoryPage();
+    speakText('提醒已设置，晴晴会在约定时间提醒您');
+  } catch (error) {
+    console.warn(error);
+    alert('设置提醒失败，请稍后再试');
+  }
+}
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+window.addEventListener('load', () => {
+  checkLogin();
+  loadMemoryPage();
+});
+</script>
+</body>
+</html>

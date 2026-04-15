@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 数字人陪伴</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #F4F1EB;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --amber: #D4903A;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body {
+    background: var(--bg);
+    font-family: var(--font);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    background: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .back-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text);
+  }
+  .header-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .status-badge {
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 14px; font-weight: 600;
+    padding: 4px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .main-layout {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  main {
+    flex: 7;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #E8F4EF 0%, #F4F1EB 100%);
+  }
+  .avatar-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 400px;
+  }
+  .avatar-wrap {
+    position: relative;
+    width: 240px;
+  }
+  .avatar-circle {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6FA882 0%, #4A7C59 100%);
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 12px 40px rgba(74,124,89,0.3);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease, background 0.4s ease;
+  }
+  .avatar-circle::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.08);
+    pointer-events: none;
+    transform: translateZ(40px);
+  }
+  .avatar-circle.outfit-qipao { background: linear-gradient(135deg, #f3c9d2 0%, #d86d6b 100%); }
+  .avatar-circle.outfit-modern { background: linear-gradient(135deg, #4a7fa5 0%, #7a5fa5 100%); }
+  .avatar-circle.outfit-sport { background: linear-gradient(135deg, #d4903a 0%, #f3af5e 100%); }
+  .avatar-circle.outfit-tang { background: linear-gradient(135deg, #7a5fa5 0%, #4a7fa5 100%); }
+  .avatar-circle.outfit-formal { background: linear-gradient(135deg, #5f5e5a 0%, #888780 100%); }
+  .outfit-panel {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .outfit-item {
+    padding: 10px 14px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.25s;
+  }
+  .outfit-item:hover { border-color: var(--green); box-shadow: 0 8px 20px rgba(74,124,89,0.12); }
+  .outfit-item.active {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .avatar-face {
+    font-size: 90px;
+    line-height: 1;
+    user-select: none;
+  }
+  .speech-bubble {
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 17px; font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border: 2px solid var(--green-light);
+    display: none;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px; left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: white;
+  }
+  .avatar-name {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 22px; font-weight: 700;
+    color: var(--green);
+  }
+  .avatar-subtitle {
+    text-align: center;
+    font-size: 15px; color: var(--muted);
+    margin-top: 4px;
+  }
+  .chat-history {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg { display: flex; gap: 10px; align-items: flex-end; }
+  .msg.ai { justify-content: flex-start; }
+  .msg.user { justify-content: flex-end; }
+  .msg-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .msg.ai .msg-bubble {
+    background: white;
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .msg.user .msg-bubble {
+    background: var(--green);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  aside {
+    flex: 1;
+    background: white;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 8px;
+    overflow-y: auto;
+  }
+  .quick-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 6px;
+    border-radius: 14px;
+    border: none;
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font);
+  }
+  .quick-btn:hover { background: var(--green-light); transform: scale(1.05); }
+  .quick-btn span { font-size: 28px; }
+  .quick-btn p { font-size: 13px; font-weight: 600; color: var(--text); }
+  footer {
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chat-input {
+    flex: 1;
+    height: 60px;
+    border: 2px solid var(--border);
+    border-radius: 30px;
+    font-size: 18px;
+    font-family: var(--font);
+    padding: 0 20px;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--green); }
+  .round-btn {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .btn-mic {
+    background: var(--coral);
+    box-shadow: 0 4px 16px rgba(201,103,78,0.35);
+  }
+  .btn-mic:hover { transform: scale(1.08); background: #b5573f; }
+  .btn-mic.recording {
+    animation: recording-pulse 1s infinite;
+    background: #e53e3e;
+  }
+  @keyframes recording-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(229,62,62,0.5); }
+    50% { box-shadow: 0 0 0 14px rgba(229,62,62,0); }
+  }
+  .btn-send {
+    background: var(--green);
+    box-shadow: 0 4px 16px rgba(74,124,89,0.35);
+  }
+  .btn-send:hover { transform: scale(1.08); background: #3a6347; }
+  .btn-write {
+    background: var(--amber);
+    box-shadow: 0 4px 16px rgba(212,144,58,0.3);
+  }
+  .canvas-3d {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+  }
+  .avatar-circle {
+    transform-style: preserve-3d;
+  }
+  .avatar-circle.is-modern { transform: rotateY(18deg) scale(1.02); }
+  .avatar-circle.is-qipao { transform: rotateY(-12deg) scale(1.01); }
+  .avatar-circle.is-sport { transform: rotateY(12deg) scale(1.03); }
+  .avatar-circle.is-tang { transform: rotateY(-18deg) scale(1.02); }
+  .avatar-circle.is-formal { transform: rotateY(0deg) scale(1.0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <button class="back-btn" onclick="window.location.href='page3_menu.html'">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div class="header-title">我的数字人 · 晴晴</div>
+  </div>
+  <div class="status-badge">
+    <span class="status-dot"></span>
+    在线陪伴中
+  </div>
+</header>
+
+<div class="main-layout">
+  <main>
+    <div class="avatar-stage">
+      <canvas class="canvas-3d" id="canvas3d"></canvas>
+      <div class="avatar-wrap">
+        <div class="speech-bubble" id="speech-bubble">今天天气真好呢！☀️</div>
+        <div class="avatar-circle" id="avatar-anim">
+          <span class="avatar-face" id="avatar-face">🧘</span>
+        </div>
+        <div class="avatar-name">晴晴</div>
+        <div class="avatar-subtitle">您的专属AI伴侣</div>
+      </div>
+      <div class="outfit-panel" id="outfit-panel"></div>
+    </div>
+    <div class="chat-history" id="chat-history">
+      <div class="msg ai">
+        <div class="msg-bubble">您好！我是晴晴，今天有什么想和我聊的吗？😊</div>
+      </div>
+    </div>
+  </main>
+
+  <aside>
+    <button class="quick-btn" onclick="quickSay('帮我打电话给家人')">
+      <span>📞</span><p>联系家人</p>
+    </button>
+    <button class="quick-btn" onclick="quickSay('今天吃什么好')">
+      <span>🍲</span><p>饮食建议</p>
+    </button>
+    <button class="quick-btn" onclick="quickSay('陪我做个健康操')">
+      <span>🏃</span><p>健康运动</p>
+    </button>
+    <button class="quick-btn" onclick="quickSay('我想听首歌')">
+      <span>🎵</span><p>音乐欣赏</p>
+    </button>
+    <button class="quick-btn" onclick="cycleAvatarAction()">
+      <span>✨</span><p>动作</p>
+    </button>
+    <button class="quick-btn" onclick="window.location.href='page7_memory.html'">
+      <span>📝</span><p>记忆提醒</p>
+    </button>
+    <button class="quick-btn" onclick="window.location.href='page5_report.html'">
+      <span>📊</span><p>心理报告</p>
+    </button>
+    <button class="quick-btn" onclick="window.location.href='page3_menu.html'">
+      <span>☰</span><p>更多功能</p>
+    </button>
+  </aside>
+</div>
+
+<footer>
+  <div class="input-row">
+    <button class="round-btn btn-mic" id="mic-btn" onclick="toggleMic()" title="语音输入">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+    </button>
+    <input class="chat-input" id="chat-input" type="text" placeholder="点击说话或输入文字…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="round-btn btn-write" onclick="openCanvas()" title="手写输入">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    </button>
+    <button class="round-btn btn-send" onclick="sendMsg()" title="发送">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+      </svg>
+    </button>
+  </div>
+</footer>
+
+<script>
+const faces = ['🧘','😊','😄','🤔','😌','🥰'];
+const greetings = [
+  '今天天气真好呢！☀️', '您好，有什么可以帮您的吗？',
+  '今天心情怎么样？', '要不要一起做个健康操？',
+  '想听什么故事呢？', '您看起来气色不错哦！'
+];
+
+const threeModelUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r152/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+const outfitColors = {
+  qipao: '#f3c9d2', modern: '#4a7fa5', sport: '#d4903a', tang: '#7a5fa5', formal: '#5f5e5a'
+};
+let scene3D, camera3D, renderer3D, controls3D, avatarMixer, avatarModel, avatarActions = {};
+let canvas3D = null;
+let activeOutfit = 'modern';
+let hairStyle = 'bun';
+let textureStyle = 'floral';
+let hairMesh = null;
+let clothMesh = null;
+let decalMesh = null;
+let currentAvatarAction = 0;
+let clock3D = null;
+
+let faceIdx = 0;
+function animateAvatar() {
+  faceIdx = (faceIdx + 1) % faces.length;
+  document.getElementById('avatar-face').textContent = faces[faceIdx];
+  const bubble = document.getElementById('speech-bubble');
+  bubble.textContent = greetings[Math.floor(Math.random() * greetings.length)];
+  bubble.style.display = 'block';
+  setTimeout(() => bubble.style.display = 'none', 3000);
+}
+setInterval(animateAvatar, 8000);
+
+function addMsg(text, isUser) {
+  const container = document.getElementById('chat-history');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'ai');
+  div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+const aiReplies = [
+  '好的，我明白了！让我来帮您。',
+  '这个问题问得真好！建议您……',
+  '您说得对！今天就这样安排吧。',
+  '我听到了，请您放心，有我陪着您。',
+  '好的，马上为您处理！',
+];
+
+function quickSay(text) {
+  document.getElementById('chat-input').value = text;
+  sendMsg();
+}
+
+const outfitOptions = [
+  { id: 'qipao', label: '传统旗袍', emoji: '🌸' },
+  { id: 'modern', label: '现代简约', emoji: '🌿' },
+  { id: 'sport', label: '运动休闲', emoji: '🏃' },
+  { id: 'tang', label: '唐装汉服', emoji: '🎎' },
+  { id: 'formal', label: '正式商务', emoji: '🎩' }
+];
+
+async function loadAvatarOutfits() {
+  let outfits = outfitOptions;
+  try {
+    const response = await fetch('/api/avatar-outfits');
+    const result = await response.json();
+    if (response.ok && result.ok && Array.isArray(result.outfits)) {
+      outfits = result.outfits;
+    }
+  } catch (error) {
+    console.warn('加载服装选项失败', error);
+  }
+  renderOutfitPanel(outfits);
+
+  try {
+    const cfgRes = await fetch('/api/avatar-config');
+    const cfg = await cfgRes.json();
+    activeOutfit = cfg?.avatarConfig?.outfit || 'modern';
+    hairStyle = cfg?.avatarConfig?.hairStyle || 'bun';
+    textureStyle = cfg?.avatarConfig?.texture || 'floral';
+    applyOutfit(activeOutfit);
+  } catch (error) {
+    applyOutfit('modern');
+  }
+}
+
+function renderOutfitPanel(outfits) {
+  const panel = document.getElementById('outfit-panel');
+  panel.innerHTML = outfits.map(item => `
+    <button class="outfit-item" id="outfit-${item.id}" onclick="applyOutfit('${item.id}')">
+      ${item.emoji} ${item.label}
+    </button>
+  `).join('');
+}
+
+function applyOutfit(id) {
+  activeOutfit = id;
+  const avatar = document.getElementById('avatar-anim');
+  avatar.className = 'avatar-circle outfit-' + id + ' is-' + id;
+  document.querySelectorAll('.outfit-item').forEach(item => {
+    item.classList.toggle('active', item.id === 'outfit-' + id);
+  });
+  document.getElementById('speech-bubble').textContent = '晴晴换上了新装，您喜欢吗？';
+  setAvatarOutfit(id);
+}
+
+function init3DCanvas() {
+  canvas3D = document.getElementById('canvas3d');
+  if (!canvas3D || !window.THREE) return;
+  renderer3D = new THREE.WebGLRenderer({ canvas: canvas3D, alpha: true, antialias: true });
+  renderer3D.setPixelRatio(window.devicePixelRatio || 1);
+  resize3DCanvas();
+  scene3D = new THREE.Scene();
+  scene3D.background = null;
+
+  camera3D = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+  camera3D.position.set(0, 1.6, 3.2);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x666666, 0.9);
+  scene3D.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+  dir.position.set(5, 5, 5);
+  scene3D.add(dir);
+
+  controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+  controls3D.target.set(0, 1.3, 0);
+  controls3D.enablePan = false;
+  controls3D.enableZoom = true;
+  controls3D.minDistance = 2.0;
+  controls3D.maxDistance = 5.5;
+  controls3D.update();
+
+  const grid = new THREE.GridHelper(6, 10, 0x999999, 0xdddddd);
+  grid.position.y = 0;
+  scene3D.add(grid);
+
+  clock3D = new THREE.Clock();
+  loadAvatarModel();
+  window.addEventListener('resize', resize3DCanvas);
+  animateThreeScene();
+}
+
+function resize3DCanvas() {
+  if (!canvas3D || !renderer3D) return;
+  const width = canvas3D.clientWidth;
+  const height = canvas3D.clientHeight;
+  renderer3D.setSize(width, height, false);
+  camera3D.aspect = width / height;
+  camera3D.updateProjectionMatrix();
+}
+
+function loadAvatarModel() {
+  if (!window.THREE || !canvas3D) return;
+  const loader = new THREE.GLTFLoader();
+  loader.load(threeModelUrl, gltf => {
+    avatarModel = gltf.scene;
+    avatarModel.position.set(0, 0, 0);
+    avatarModel.scale.set(0.9, 0.9, 0.9);
+    scene3D.add(avatarModel);
+    if (gltf.animations && gltf.animations.length) {
+      avatarMixer = new THREE.AnimationMixer(avatarModel);
+      gltf.animations.forEach((clip, index) => {
+        avatarActions[index] = avatarMixer.clipAction(clip);
+      });
+      playAvatarAction(0);
+    }
+    createModelLayers();
+    setAvatarHair(hairStyle);
+    setAvatarTexture(textureStyle);
+    setAvatarOutfit(activeOutfit);
+  }, undefined, e => {
+    console.warn('3D 模型加载错误', e);
+  });
+}
+
+function setAvatarOutfit(id) {
+  if (!avatarModel) return;
+  const color = outfitColors[id] || '#4a7fa5';
+  avatarModel.traverse(child => {
+    if (child.isMesh && child.material) {
+      if (Array.isArray(child.material)) {
+        child.material.forEach(mat => mat.color && mat.color.set(color));
+      } else {
+        child.material.color && child.material.color.set(color);
+      }
+    }
+  });
+  if (!hairMesh && !clothMesh && !decalMesh) {
+    createModelLayers();
+  }
+  if (clothMesh) {
+    clothMesh.material.color.set(color);
+  }
+}
+
+function createModelLayers() {
+  if (!avatarModel) return;
+  if (hairMesh) avatarModel.remove(hairMesh);
+  if (clothMesh) avatarModel.remove(clothMesh);
+  if (decalMesh) avatarModel.remove(decalMesh);
+
+  hairMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 32, 32),
+    new THREE.MeshStandardMaterial({ color: '#7a5fa5', roughness: 0.35, metalness: 0.1 })
+  );
+  hairMesh.position.set(0, 1.82, 0);
+  avatarModel.add(hairMesh);
+
+  clothMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.42, 0.9, 28, 1, true),
+    new THREE.MeshStandardMaterial({ color: outfitColors[activeOutfit] || '#4a7fa5', roughness: 0.45, metalness: 0.1, side: THREE.DoubleSide })
+  );
+  clothMesh.position.set(0, 1.0, 0);
+  avatarModel.add(clothMesh);
+
+  decalMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.5, 0.5),
+    new THREE.MeshStandardMaterial({ map: createPatternTexture(textureStyle), transparent: true, opacity: 0.95, side: THREE.DoubleSide })
+  );
+  decalMesh.position.set(0, 1.17, 0.3);
+  decalMesh.rotation.y = Math.PI;
+  avatarModel.add(decalMesh);
+}
+
+function setAvatarHair(style) {
+  if (!hairMesh) {
+    createModelLayers();
+  }
+  if (!hairMesh) return;
+  const config = {
+    short: { scale: [1.0, 0.7, 1.0], pos: [0, 1.82, 0] },
+    bun: { scale: [0.9, 0.55, 0.9], pos: [0, 1.86, 0] },
+    waves: { scale: [1.1, 0.9, 1.1], pos: [0, 1.82, 0] },
+    braid: { scale: [0.8, 1.0, 0.9], pos: [0, 1.8, 0] }
+  }[style] || { scale: [1, 1, 1], pos: [0, 1.82, 0] };
+  hairMesh.scale.set(...config.scale);
+  hairMesh.position.set(...config.pos);
+}
+
+function setAvatarTexture(style) {
+  if (!decalMesh) {
+    createModelLayers();
+  }
+  if (!decalMesh) return;
+  const texture = createPatternTexture(style);
+  decalMesh.material.map = texture;
+  decalMesh.material.needsUpdate = true;
+}
+
+function createPatternTexture(style) {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  if (style === 'dot') {
+    ctx.fillStyle = '#eedfde';
+    for (let x = 24; x < size; x += 48) {
+      for (let y = 24; y < size; y += 48) {
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (style === 'floral') {
+    ctx.fillStyle = '#f3c9d2';
+    for (let x = 32; x < size; x += 64) {
+      for (let y = 32; y < size; y += 64) {
+        ctx.beginPath();
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 2, y - 18, 4, 36);
+        ctx.fillRect(x - 18, y - 2, 36, 4);
+        ctx.fillStyle = '#f3c9d2';
+      }
+    }
+  } else if (style === 'stripe') {
+    ctx.fillStyle = '#e8f1ee';
+    for (let i = 0; i < size; i += 20) {
+      ctx.fillRect(i, 0, 12, size);
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  return texture;
+}
+
+function playAvatarAction(index) {
+  if (!avatarMixer) return;
+  const clips = Object.keys(avatarActions);
+  if (!clips.length) return;
+  if (currentAvatarAction !== undefined && avatarActions[currentAvatarAction]) {
+    avatarActions[currentAvatarAction].fadeOut(0.3);
+  }
+  currentAvatarAction = index % clips.length;
+  const action = avatarActions[currentAvatarAction];
+  action.reset().fadeIn(0.4).play();
+}
+
+function cycleAvatarAction() {
+  const keys = Object.keys(avatarActions);
+  if (!keys.length) return;
+  currentAvatarAction = (currentAvatarAction + 1) % keys.length;
+  playAvatarAction(currentAvatarAction);
+  document.getElementById('speech-bubble').textContent = '晴晴正在切换到新的动作展示。';
+}
+
+function animateThreeScene() {
+  requestAnimationFrame(animateThreeScene);
+  if (avatarMixer) {
+    avatarMixer.update(clock3D.getDelta());
+  }
+  if (controls3D) {
+    controls3D.update();
+  }
+  if (renderer3D && scene3D && camera3D) {
+    renderer3D.render(scene3D, camera3D);
+  }
+}
+
+let isRecording = false;
+let recognition = null;
+function toggleMic() {
+  const btn = document.getElementById('mic-btn');
+  if (!isRecording) {
+    isRecording = true;
+    btn.classList.add('recording');
+    speakText('请说话，我在听');
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.lang = 'zh-CN';
+      recognition.onresult = e => {
+        document.getElementById('chat-input').value = e.results[0][0].transcript;
+        sendMsg();
+      };
+      recognition.onend = () => {
+        isRecording = false;
+        btn.classList.remove('recording');
+      };
+      recognition.start();
+    } else {
+      setTimeout(() => {
+        isRecording = false;
+        btn.classList.remove('recording');
+      }, 3000);
+    }
+  } else {
+    isRecording = false;
+    btn.classList.remove('recording');
+    if (recognition) recognition.stop();
+  }
+}
+
+function openCanvas() {
+  speakText('手写输入功能正在准备中，稍后可升级使用');
+  alert('手写输入功能正在准备中，敬请期待');
+}
+
+function getUserPhone() {
+  return localStorage.getItem('userPhone') || '';
+}
+
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+async function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(text, true);
+  input.value = '';
+  speakText(text);
+  const bubble = document.getElementById('speech-bubble');
+  bubble.textContent = '晴晴在认真听您说话……';
+  bubble.style.display = 'block';
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, phone: getUserPhone() })
+    });
+    const result = await response.json();
+    const reply = (response.ok && result.ok) ? result.reply : '晴晴暂时无法回答，请稍后再试。';
+    addMsg(reply, false);
+    speakText(reply);
+    document.getElementById('avatar-face').textContent = '😊';
+  } catch (error) {
+    const reply = '网络连接不稳定，稍后再试。';
+    addMsg(reply, false);
+    speakText(reply);
+  } finally {
+    bubble.style.display = 'none';
+  }
+}
+
+window.addEventListener('load', () => {
+  checkLogin();
+  loadAvatarOutfits();
+  init3DCanvas();
+});
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+</script>
+</body>
+</html>

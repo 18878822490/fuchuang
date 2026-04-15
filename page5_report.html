@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 心理报告</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #FAF8F3;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --amber: #D4903A;
+    --blue: #4A7FA5;
+    --purple: #7A5FA5;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body { background: var(--bg); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; }
+  header {
+    background: white; padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .back-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--border); background: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .header-date { margin-left: auto; font-size: 14px; color: var(--muted); }
+  .page-body { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+  .section-title {
+    font-size: 18px; font-weight: 700; color: var(--text);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { font-size: 22px; }
+  .card {
+    background: white; border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .metrics-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px; margin-bottom: 16px;
+  }
+  .metric {
+    background: var(--bg); border-radius: 14px;
+    padding: 14px 10px; text-align: center;
+  }
+  .metric-icon { font-size: 26px; margin-bottom: 6px; }
+  .metric-value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .metric-label { font-size: 13px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+  .metric.good .metric-value { color: var(--green); }
+  .metric.warn .metric-value { color: var(--amber); }
+  .metric.ok .metric-value { color: var(--blue); }
+  .chart-container { height: 220px; position: relative; }
+  .chart-tabs {
+    display: flex; gap: 8px; margin-bottom: 14px;
+  }
+  .chart-tab {
+    flex: 1; height: 40px;
+    border-radius: 20px; border: 2px solid var(--border);
+    background: white; font-size: 16px; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
+    color: var(--muted); transition: all 0.2s;
+  }
+  .chart-tab.active { background: var(--green); color: white; border-color: var(--green); }
+  .intervention-list { display: flex; flex-direction: column; gap: 12px; }
+  .intervention-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg); border-radius: 16px;
+    cursor: pointer; transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .intervention-item:hover { background: var(--green-light); border-color: var(--green-mid); }
+  .intervention-icon {
+    width: 60px; height: 60px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; flex-shrink: 0;
+  }
+  .int-green { background: var(--green-light); }
+  .int-coral { background: #FAEAE6; }
+  .int-amber { background: #FDF3E3; }
+  .int-blue { background: #E6EFF6; }
+  .intervention-content { flex: 1; }
+  .intervention-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .intervention-desc { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .btn-play {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--green); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s;
+  }
+  .btn-play:hover { transform: scale(1.1); background: #3a6347; }
+  .btn-play.playing { background: var(--coral); animation: playing-pulse 1.5s infinite; }
+  @keyframes playing-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(201,103,78,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(201,103,78,0); }
+  }
+  audio { display: none; }
+  .music-player {
+    background: linear-gradient(135deg, var(--green), var(--green-mid));
+    border-radius: 20px; padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    color: white; position: relative; overflow: hidden;
+  }
+  .music-art {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; flex-shrink: 0;
+    animation: spin 8s linear infinite paused;
+  }
+  .music-art.spinning { animation-play-state: running; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .music-info { flex: 1; }
+  .music-title { font-size: 20px; font-weight: 700; }
+  .music-sub { font-size: 14px; opacity: 0.8; margin-top: 3px; }
+  .music-ctrl {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .ctrl-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
+    color: white; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.35); }
+  .audio-ctrl { width: 220px; }
+  .report-voice-btn {
+    width: 100%; height: 54px;
+    background: white; color: var(--green);
+    border: 2px solid var(--green-mid);
+    border-radius: 14px;
+    font-size: 18px; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s; margin-top: 8px;
+  }
+  .report-voice-btn:hover { background: var(--green-light); }
+  .summary-text {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #4A4A4A;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='page3_menu.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+  </button>
+  <div class="header-title">心理健康报告</div>
+  <div class="header-date" id="today-date"></div>
+</header>
+
+<div class="page-body">
+
+  <div class="card">
+    <div class="section-title"><span>😊</span> 今日情绪概览</div>
+    <div class="metrics-row">
+      <div class="metric good">
+        <div class="metric-icon">😊</div>
+        <div class="metric-value">82</div>
+        <div class="metric-label">心情指数</div>
+      </div>
+      <div class="metric ok">
+        <div class="metric-icon">😴</div>
+        <div class="metric-value">7.5</div>
+        <div class="metric-label">睡眠质量h</div>
+      </div>
+      <div class="metric warn">
+        <div class="metric-icon">⚡</div>
+        <div class="metric-value">68</div>
+        <div class="metric-label">活力评分</div>
+      </div>
+    </div>
+    <button class="report-voice-btn" onclick="readReport()">
+      🔊 朗读报告摘要
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span>📈</span> 情绪趋势</div>
+    <div class="chart-tabs">
+      <button class="chart-tab active" onclick="switchChart('day', this)">日趋势</button>
+      <button class="chart-tab" onclick="switchChart('week', this)">周趋势</button>
+    </div>
+    <div class="chart-container">
+      <canvas id="mood-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span>🎵</span> 疗愈音乐</div>
+    <div class="music-player">
+      <div class="music-art" id="music-art">🎶</div>
+      <div class="music-info">
+        <div class="music-title" id="music-title">轻柔晨风</div>
+        <div class="music-sub">冥想放松 · 8分钟</div>
+      </div>
+      <div class="music-ctrl">
+        <button class="ctrl-btn" onclick="toggleMusic()" id="play-btn">▶</button>
+      </div>
+    </div>
+    <audio id="healing-audio" loop>
+      <source src="https://www.soundjay.com/nature/sounds/rain-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio controls class="audio-ctrl" id="audio-control" style="width:100%;margin-top:12px;border-radius:8px;"></audio>
+  </div>
+
+  <div class="card" id="report-summary-card">
+    <div class="section-title"><span>💬</span> AI 关怀建议</div>
+    <p class="summary-text" id="report-summary-text">正在为您分析今日情绪与生活习惯……</p>
+    <button class="report-voice-btn" onclick="readReport()">
+      🔊 朗读建议
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title"><span>💚</span> 干预建议</div>
+    <ul class="intervention-list">
+      <li class="intervention-item" onclick="doIntervention('呼吸冥想')">
+        <div class="intervention-icon int-green">🧘</div>
+        <div class="intervention-content">
+          <div class="intervention-title">5分钟呼吸冥想</div>
+          <div class="intervention-desc">缓解焦虑，提升专注力，适合饭后进行</div>
+        </div>
+        <button class="btn-play" id="play-breath">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+        </button>
+      </li>
+      <li class="intervention-item" onclick="doIntervention('体感律动操')">
+        <div class="intervention-icon int-amber">🏃</div>
+        <div class="intervention-content">
+          <div class="intervention-title">体感律动操</div>
+          <div class="intervention-desc">促进血液循环，活动筋骨，每天10分钟</div>
+        </div>
+        <button class="btn-play">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+        </button>
+      </li>
+      <li class="intervention-item" onclick="doIntervention('温暖日记')">
+        <div class="intervention-icon int-coral">📔</div>
+        <div class="intervention-content">
+          <div class="intervention-title">写温暖日记</div>
+          <div class="intervention-desc">记录今天三件美好的事情，感恩当下</div>
+        </div>
+        <button class="btn-play">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+        </button>
+      </li>
+      <li class="intervention-item" onclick="doIntervention('视频联络家人')">
+        <div class="intervention-icon int-blue">📞</div>
+        <div class="intervention-content">
+          <div class="intervention-title">视频联络家人</div>
+          <div class="intervention-desc">与家人分享生活，增强情感连接</div>
+        </div>
+        <button class="btn-play">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+const today = new Date();
+document.getElementById('today-date').textContent =
+  today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+
+const dayData = {
+  labels: ['6时','9时','12时','15时','18时','21时'],
+  data: [65, 72, 78, 82, 75, 80],
+};
+const weekData = {
+  labels: ['周一','周二','周三','周四','周五','周六','周日'],
+  data: [70, 75, 68, 82, 79, 85, 80],
+};
+
+let chart = null;
+function buildChart(type) {
+  const d = type === 'day' ? dayData : weekData;
+  if (chart) chart.destroy();
+  const ctx = document.getElementById('mood-chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.labels,
+      datasets: [{
+        label: '情绪指数',
+        data: d.data,
+        borderColor: '#4A7C59',
+        backgroundColor: 'rgba(74,124,89,0.12)',
+        borderWidth: 3,
+        pointBackgroundColor: '#4A7C59',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          min: 50, max: 100,
+          grid: { color: '#EEE' },
+          ticks: { font: { size: 14, family: "'Microsoft YaHei',sans-serif" } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 14, family: "'Microsoft YaHei',sans-serif" } }
+        }
+      }
+    }
+  });
+}
+
+function switchChart(type, btn) {
+  document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildChart(type);
+}
+
+let isPlaying = false;
+function toggleMusic() {
+  const btn = document.getElementById('play-btn');
+  const art = document.getElementById('music-art');
+  isPlaying = !isPlaying;
+  if (isPlaying) {
+    btn.textContent = '⏸';
+    art.classList.add('spinning');
+    speakText('正在播放疗愈音乐，轻柔晨风');
+  } else {
+    btn.textContent = '▶';
+    art.classList.remove('spinning');
+  }
+}
+
+function doIntervention(name) {
+  speakText('好的，现在开始' + name + '，请您放松跟随晴晴的引导');
+}
+
+async function loadReport() {
+  try {
+    const [reportRes, summaryRes] = await Promise.all([
+      fetch('/api/report'),
+      fetch('/api/report-summary')
+    ]);
+    const reportResult = await reportRes.json();
+    const summaryResult = await summaryRes.json();
+    if (reportRes.ok && reportResult.ok) {
+      const report = reportResult.report;
+      document.getElementById('today-date').textContent = today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日';
+      document.querySelector('.metric.good .metric-value').textContent = report.metrics.mood;
+      document.querySelector('.metric.ok .metric-value').textContent = report.metrics.sleep;
+      document.querySelector('.metric.warn .metric-value').textContent = report.metrics.energy;
+      dayData.labels = report.daily.labels;
+      dayData.data = report.daily.values;
+      weekData.labels = report.weekly.labels;
+      weekData.data = report.weekly.values;
+    }
+    if (summaryRes.ok && summaryResult.ok) {
+      document.getElementById('report-summary-text').textContent = summaryResult.summary;
+    }
+  } catch (error) {
+    console.warn('获取报告数据失败', error);
+    document.getElementById('report-summary-text').textContent = '系统正在优化您的专属关怀建议，请稍后再看。';
+  }
+  buildChart('day');
+}
+
+function readReport() {
+  const summary = document.getElementById('report-summary-text').textContent;
+  speakText(summary || '晴晴正在为您准备今天的关怀建议。');
+}
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+window.addEventListener('load', () => {
+  checkLogin();
+  loadReport();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 形象定制</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #FAF8F3;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --amber: #D4903A;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body { background: var(--bg); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; }
+  header {
+    background: white; padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .back-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--border); background: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-body { flex: 1; display: flex; flex-direction: column; padding: 0 16px 20px; overflow-y: auto; }
+  .section-title {
+    font-size: 18px; font-weight: 700; color: var(--text);
+    margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { font-size: 22px; }
+  .preset-scroll {
+    display: flex; gap: 14px; overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .preset-scroll::-webkit-scrollbar { display: none; }
+  .preset-item {
+    flex-shrink: 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .preset-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    border: 3px solid var(--border);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .preset-item.selected .preset-avatar {
+    border-color: var(--green);
+    box-shadow: 0 0 0 4px var(--green-light);
+  }
+  .preset-check {
+    position: absolute; bottom: 0; right: 0;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--green); color: white;
+    font-size: 13px; display: none;
+    align-items: center; justify-content: center;
+  }
+  .preset-item.selected .preset-check { display: flex; }
+  .preset-name {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    white-space: nowrap;
+  }
+  .options-grid { display: flex; flex-direction: column; gap: 16px; }
+  .option-row {
+    background: white; border-radius: 16px;
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .option-label {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .option-label span { font-size: 22px; }
+  select {
+    width: 100%; height: 52px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 18px; font-family: var(--font);
+    color: var(--text);
+    padding: 0 16px;
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234A7C59' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  select:focus { border-color: var(--green); background-color: white; }
+  .preview-section {
+    background: white; border-radius: 20px;
+    padding: 24px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    min-height: 280px;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-bg {
+    position: absolute; inset: 0;
+    transition: background 0.4s;
+    opacity: 0.15;
+  }
+  .preview-avatar-wrap { position: relative; z-index: 1; text-align: center; }
+  .preview-avatar {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 70px;
+    margin: 0 auto;
+    transition: all 0.3s;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+  }
+  .preview-name {
+    font-size: 24px; font-weight: 700; color: var(--text);
+    margin-top: 12px; z-index: 1;
+  }
+  .preview-outfit-tag {
+    background: var(--green-light); color: var(--green);
+    font-size: 15px; font-weight: 600;
+    padding: 6px 16px; border-radius: 20px; z-index: 1;
+  }
+  .preview-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: all;
+  }
+  .btn-interact {
+    width: 100%; height: 52px;
+    margin-top: 8px;
+    background: #5f9371;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(95,147,113,0.25);
+    transition: all 0.2s;
+  }
+  .btn-interact:hover { background: #4f7b5f; transform: translateY(-1px); }
+  .btn-save {
+    width: 100%; height: 62px;
+    background: var(--green); color: white;
+    border: none; border-radius: 16px;
+    font-size: 22px; font-weight: 700;
+    font-family: var(--font); cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 6px 20px rgba(74,124,89,0.3);
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-save:hover { background: #3a6347; transform: translateY(-1px); }
+  .saved-toast {
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: white;
+    padding: 14px 32px; border-radius: 40px;
+    font-size: 17px; font-weight: 600;
+    display: none; z-index: 999;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='page3_menu.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+  </button>
+  <div class="header-title">数字人形象定制</div>
+</header>
+
+<div class="page-body">
+
+  <div class="section-title"><span>👤</span> 选择形象</div>
+  <div class="preset-scroll" id="preset-list">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="section-title"><span>✨</span> 实时预览</div>
+  <div class="preview-section">
+    <div class="preview-bg" id="preview-bg"></div>
+    <div class="preview-avatar-wrap">
+      <div class="preview-avatar" id="preview-avatar" style="background: linear-gradient(135deg,#6FA882,#4A7C59)"></div>
+      <div class="preview-name" id="preview-name">晴晴</div>
+      <div class="preview-outfit-tag" id="preview-tag">传统旗袍 · 春日花园</div>
+    </div>
+    <canvas class="preview-canvas" id="preview-canvas" width="300" height="300"></canvas>
+    <button class="btn-interact" onclick="cycleCustomizeAction()">🔄 切换动作</button>
+  </div>
+
+  <div class="section-title"><span>👗</span> 个性化设置</div>
+  <div class="options-grid">
+    <div class="option-row">
+      <div class="option-label"><span>👘</span> 着装风格</div>
+      <select id="sel-outfit" onchange="updatePreview()">
+        <option value="qipao">传统旗袍</option>
+        <option value="modern">现代简约</option>
+        <option value="sport">运动休闲</option>
+        <option value="tang">唐装汉服</option>
+        <option value="formal">正式商务</option>
+      </select>
+    </div>
+    <div class="option-row">
+      <div class="option-label"><span>🌿</span> 背景场景</div>
+      <select id="sel-bg" onchange="updatePreview()">
+        <option value="garden">春日花园</option>
+        <option value="mountain">青山绿水</option>
+        <option value="room">温馨客厅</option>
+        <option value="park">公园晨练</option>
+        <option value="sea">海边夕阳</option>
+      </select>
+    </div>
+    <div class="option-row">
+      <div class="option-label"><span>💬</span> 说话风格</div>
+      <select id="sel-voice" onchange="updatePreview()">
+        <option value="warm">温柔体贴</option>
+        <option value="cheerful">活泼开朗</option>
+        <option value="calm">沉稳平和</option>
+        <option value="elder">亲切长辈</option>
+      </select>
+    </div>
+    <div class="option-row">
+      <div class="option-label"><span>💇</span> 发型</div>
+      <select id="sel-hair" onchange="updatePreview()">
+        <option value="short">短发</option>
+        <option value="bun">盘发</option>
+        <option value="waves">卷发</option>
+        <option value="braid">麻花辫</option>
+      </select>
+    </div>
+    <div class="option-row">
+      <div class="option-label"><span>🎨</span> 布纹</div>
+      <select id="sel-texture" onchange="updatePreview()">
+        <option value="plain">纯色</option>
+        <option value="dot">水珠</option>
+        <option value="floral">花卉</option>
+        <option value="stripe">条纹</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="saveConfig()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+      <polyline points="17,21 17,13 7,13 7,21"/>
+      <polyline points="7,3 7,8 15,8"/>
+    </svg>
+    保存我的形象
+  </button>
+</div>
+
+<div class="saved-toast" id="saved-toast">✅ 形象已保存！</div>
+
+<script>
+const presets = [
+  { name: '晴晴', emoji: '🧘', bg: 'linear-gradient(135deg,#6FA882,#4A7C59)', color: '#4A7C59' },
+  { name: '兰兰', emoji: '👩', bg: 'linear-gradient(135deg,#C9674E,#D4903A)', color: '#C9674E' },
+  { name: '云云', emoji: '🧑‍⚕️', bg: 'linear-gradient(135deg,#4A7FA5,#7A5FA5)', color: '#4A7FA5' },
+  { name: '福叔', emoji: '👴', bg: 'linear-gradient(135deg,#D4903A,#C9674E)', color: '#D4903A' },
+  { name: '明叔', emoji: '🧑‍🦳', bg: 'linear-gradient(135deg,#5F5E5A,#888780)', color: '#5F5E5A' },
+  { name: '文文', emoji: '👩‍🦱', bg: 'linear-gradient(135deg,#7A5FA5,#4A7FA5)', color: '#7A5FA5' },
+];
+
+let selectedPreset = 0;
+
+function renderPresets() {
+  const container = document.getElementById('preset-list');
+  container.innerHTML = presets.map((p, i) => `
+    <div class="preset-item ${i === selectedPreset ? 'selected' : ''}" onclick="selectPreset(${i})">
+      <div class="preset-avatar" style="background:${p.bg}">
+        ${p.emoji}
+        <div class="preset-check">✓</div>
+      </div>
+      <div class="preset-name">${p.name}</div>
+    </div>
+  `).join('');
+}
+
+function selectPreset(i) {
+  selectedPreset = i;
+  renderPresets();
+  updatePreview();
+  speakText('已选择' + presets[i].name + '形象');
+}
+
+const bgColors = {
+  garden: 'linear-gradient(135deg, #C8E6C9, #A5D6A7)',
+  mountain: 'linear-gradient(135deg, #B2DFDB, #80CBC4)',
+  room: 'linear-gradient(135deg, #FFE0B2, #FFCC80)',
+  park: 'linear-gradient(135deg, #DCEDC8, #AED581)',
+  sea: 'linear-gradient(135deg, #B3E5FC, #F48FB1)',
+};
+
+const outfitLabels = {
+  qipao: '传统旗袍', modern: '现代简约', sport: '运动休闲',
+  tang: '唐装汉服', formal: '正式商务',
+};
+const bgLabels = {
+  garden: '春日花园', mountain: '青山绿水', room: '温馨客厅',
+  park: '公园晨练', sea: '海边夕阳',
+};
+
+function updatePreview() {
+  const p = presets[selectedPreset];
+  const outfit = document.getElementById('sel-outfit').value;
+  const bg = document.getElementById('sel-bg').value;
+  const hair = document.getElementById('sel-hair').value;
+  const texture = document.getElementById('sel-texture').value;
+  document.getElementById('preview-avatar').style.background = p.bg;
+  document.getElementById('preview-avatar').textContent = p.emoji;
+  document.getElementById('preview-name').textContent = p.name;
+  document.getElementById('preview-bg').style.background = bgColors[bg];
+  document.getElementById('preview-tag').textContent = `${outfitLabels[outfit]} · ${bgLabels[bg]} · ${hair} · ${texture}`;
+  setCustomizeOutfit(outfit);
+  setCustomizeHair(hair);
+  setCustomizeTexture(texture);
+}
+
+const threeModelUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r152/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+const outfitColors = {
+  qipao: '#f3c9d2', modern: '#4a7fa5', sport: '#d4903a', tang: '#7a5fa5', formal: '#5f5e5a'
+};
+let previewScene, previewCamera, previewRenderer, previewControls, previewMixer, previewModel, previewActions = {};
+let previewCanvas = null;
+let currentPreviewAction = 0;
+let previewClock = null;
+
+function initCustomizeCanvas() {
+  previewCanvas = document.getElementById('preview-canvas');
+  if (!previewCanvas || !window.THREE) return;
+  previewRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, alpha: true, antialias: true });
+  previewRenderer.setPixelRatio(window.devicePixelRatio || 1);
+  resizeCustomizeCanvas();
+  previewScene = new THREE.Scene();
+  previewScene.background = null;
+
+  previewCamera = new THREE.PerspectiveCamera(32, 1, 0.1, 1000);
+  previewCamera.position.set(0, 1.6, 3.0);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x646464, 0.9);
+  previewScene.add(hemi);
+  const spot = new THREE.DirectionalLight(0xffffff, 1.0);
+  spot.position.set(3, 5, 4);
+  previewScene.add(spot);
+
+  previewControls = new THREE.OrbitControls(previewCamera, previewRenderer.domElement);
+  previewControls.target.set(0, 1.3, 0);
+  previewControls.enablePan = false;
+  previewControls.enableZoom = true;
+  previewControls.minDistance = 2.0;
+  previewControls.maxDistance = 5.0;
+  previewControls.update();
+
+  previewClock = new THREE.Clock();
+  loadCustomizeModel();
+  window.addEventListener('resize', resizeCustomizeCanvas);
+  animateCustomizeScene();
+}
+
+function resizeCustomizeCanvas() {
+  if (!previewCanvas || !previewRenderer) return;
+  const width = previewCanvas.clientWidth;
+  const height = previewCanvas.clientHeight;
+  previewRenderer.setSize(width, height, false);
+  previewCamera.aspect = width / height;
+  previewCamera.updateProjectionMatrix();
+}
+
+function loadCustomizeModel() {
+  if (!window.THREE || !previewCanvas) return;
+  const loader = new THREE.GLTFLoader();
+  loader.load(threeModelUrl, gltf => {
+    previewModel = gltf.scene;
+    previewModel.position.set(0, 0, 0);
+    previewModel.scale.set(0.9, 0.9, 0.9);
+    previewScene.add(previewModel);
+    if (gltf.animations && gltf.animations.length) {
+      previewMixer = new THREE.AnimationMixer(previewModel);
+      gltf.animations.forEach((clip, idx) => {
+        previewActions[idx] = previewMixer.clipAction(clip);
+      });
+      playCustomizeAction(0);
+    }
+    setCustomizeOutfit(document.getElementById('sel-outfit')?.value || 'qipao');
+  }, undefined, e => {
+    console.warn('定制预览模型加载失败', e);
+  });
+}
+
+let customizeLayersCreated = false;
+let hairMesh = null;
+let clothMesh = null;
+let decalMesh = null;
+
+function setCustomizeOutfit(id) {
+  if (!previewModel) return;
+  const color = outfitColors[id] || '#4a7fa5';
+  previewModel.traverse(child => {
+    if (child.isMesh && child.material) {
+      if (Array.isArray(child.material)) {
+        child.material.forEach(mat => mat.color && mat.color.set(color));
+      } else {
+        child.material.color && child.material.color.set(color);
+      }
+    }
+  });
+  if (!customizeLayersCreated) {
+    createCustomizeLayers();
+  }
+  if (clothMesh) {
+    clothMesh.material.color.set(color);
+  }
+}
+
+function setCustomizeHair(style) {
+  if (!customizeLayersCreated) {
+    createCustomizeLayers();
+  }
+  if (!hairMesh) return;
+  const config = {
+    short: { scale: [1.0, 0.7, 1.0], pos: [0, 1.82, 0] },
+    bun: { scale: [0.9, 0.55, 0.9], pos: [0, 1.86, 0] },
+    waves: { scale: [1.1, 0.9, 1.1], pos: [0, 1.82, 0] },
+    braid: { scale: [0.8, 1.0, 0.9], pos: [0, 1.8, 0] }
+  }[style] || { scale: [1, 1, 1], pos: [0, 1.82, 0] };
+  hairMesh.scale.set(...config.scale);
+  hairMesh.position.set(...config.pos);
+}
+
+function setCustomizeTexture(style) {
+  if (!customizeLayersCreated) {
+    createCustomizeLayers();
+  }
+  if (!decalMesh) return;
+  const texture = createPatternTexture(style);
+  decalMesh.material.map = texture;
+  decalMesh.material.needsUpdate = true;
+}
+
+function createCustomizeLayers() {
+  if (!previewModel) return;
+  customizeLayersCreated = true;
+  if (hairMesh) previewModel.remove(hairMesh);
+  if (clothMesh) previewModel.remove(clothMesh);
+  if (decalMesh) previewModel.remove(decalMesh);
+
+  hairMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 32, 32),
+    new THREE.MeshStandardMaterial({ color: '#7a5fa5', roughness: 0.35, metalness: 0.1 })
+  );
+  hairMesh.position.set(0, 1.82, 0);
+  previewModel.add(hairMesh);
+
+  clothMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.42, 0.9, 28, 1, true),
+    new THREE.MeshStandardMaterial({ color: '#4a7fa5', roughness: 0.45, metalness: 0.1, side: THREE.DoubleSide })
+  );
+  clothMesh.position.set(0, 1.0, 0);
+  previewModel.add(clothMesh);
+
+  decalMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.5, 0.5),
+    new THREE.MeshStandardMaterial({ map: createPatternTexture('floral'), transparent: true, opacity: 0.95, side: THREE.DoubleSide })
+  );
+  decalMesh.position.set(0, 1.17, 0.3);
+  decalMesh.rotation.y = Math.PI;
+  previewModel.add(decalMesh);
+}
+
+function createPatternTexture(style) {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  if (style === 'dot') {
+    ctx.fillStyle = '#eedfde';
+    for (let x = 24; x < size; x += 48) {
+      for (let y = 24; y < size; y += 48) {
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (style === 'floral') {
+    ctx.fillStyle = '#f3c9d2';
+    for (let x = 32; x < size; x += 64) {
+      for (let y = 32; y < size; y += 64) {
+        ctx.beginPath();
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 2, y - 18, 4, 36);
+        ctx.fillRect(x - 18, y - 2, 36, 4);
+        ctx.fillStyle = '#f3c9d2';
+      }
+    }
+  } else if (style === 'stripe') {
+    ctx.fillStyle = '#e8f1ee';
+    for (let i = 0; i < size; i += 20) {
+      ctx.fillRect(i, 0, 12, size);
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  return texture;
+}
+
+function playCustomizeAction(index) {
+  if (!previewMixer) return;
+  const keys = Object.keys(previewActions);
+  if (!keys.length) return;
+  if (previewActions[currentPreviewAction]) {
+    previewActions[currentPreviewAction].fadeOut(0.3);
+  }
+  currentPreviewAction = index % keys.length;
+  const action = previewActions[currentPreviewAction];
+  action.reset().fadeIn(0.4).play();
+}
+
+function cycleCustomizeAction() {
+  const keys = Object.keys(previewActions);
+  if (!keys.length) return;
+  currentPreviewAction = (currentPreviewAction + 1) % keys.length;
+  playCustomizeAction(currentPreviewAction);
+  document.getElementById('preview-tag').textContent = '动作切换中…';
+  setTimeout(() => updatePreview(), 400);
+}
+
+function animateCustomizeScene() {
+  requestAnimationFrame(animateCustomizeScene);
+  if (previewMixer) {
+    previewMixer.update(previewClock.getDelta());
+  }
+  if (previewControls) {
+    previewControls.update();
+  }
+  if (previewRenderer && previewScene && previewCamera) {
+    previewRenderer.render(previewScene, previewCamera);
+  }
+}
+
+async function saveConfig() {
+  const config = {
+    preset: selectedPreset,
+    outfit: document.getElementById('sel-outfit').value,
+    bg: document.getElementById('sel-bg').value,
+    voice: document.getElementById('sel-voice').value,
+    hairStyle: document.getElementById('sel-hair').value,
+    texture: document.getElementById('sel-texture').value,
+  };
+  localStorage.setItem('avatarConfig', JSON.stringify(config));
+  try {
+    const response = await fetch('/api/avatar-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || '保存失败');
+    }
+  } catch (error) {
+    console.warn('保存形象配置失败', error);
+  }
+  const t = document.getElementById('saved-toast');
+  t.style.display = 'block';
+  speakText('形象已保存，数字人' + presets[selectedPreset].name + '将会以新形象陪伴您');
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+async function loadConfig() {
+  try {
+    const response = await fetch('/api/avatar-config');
+    const result = await response.json();
+    if (response.ok && result.ok) {
+      const c = result.avatarConfig;
+      selectedPreset = c.preset || 0;
+      document.getElementById('sel-outfit').value = c.outfit || 'qipao';
+      document.getElementById('sel-bg').value = c.bg || 'garden';
+      document.getElementById('sel-voice').value = c.voice || 'warm';
+      document.getElementById('sel-hair').value = c.hairStyle || 'bun';
+      document.getElementById('sel-texture').value = c.texture || 'floral';
+    }
+  } catch (error) {
+    const saved = localStorage.getItem('avatarConfig');
+    if (saved) {
+      const c = JSON.parse(saved);
+      selectedPreset = c.preset || 0;
+      document.getElementById('sel-outfit').value = c.outfit || 'qipao';
+      document.getElementById('sel-bg').value = c.bg || 'garden';
+      document.getElementById('sel-voice').value = c.voice || 'warm';
+    }
+  }
+  renderPresets();
+  updatePreview();
+}
+
+window.addEventListener('load', () => {
+  checkLogin();
+  loadConfig();
+  initCustomizeCanvas();
+});
+</script>
+</body>
+</html>

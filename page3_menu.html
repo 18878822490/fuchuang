@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颐心 · 功能菜单</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #FAF8F3;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --amber: #D4903A;
+    --blue: #4A7FA5;
+    --purple: #7A5FA5;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body {
+    background: var(--bg);
+    font-family: var(--font);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: white;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .voice-control-bar {
+    background: var(--green-light);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #C8DDD0;
+  }
+  .voice-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--green); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: transform 0.2s;
+  }
+  .voice-icon:hover { transform: scale(1.1); }
+  .voice-text {
+    font-size: 16px; color: var(--green); font-weight: 600;
+  }
+  .wave-container {
+    display: flex; gap: 3px; align-items: center; margin-left: auto;
+  }
+  .wave-bar {
+    width: 4px; border-radius: 2px;
+    background: var(--green);
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 18px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(3) { height: 24px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(4) { height: 18px; animation-delay: 0.45s; }
+  .wave-bar:nth-child(5) { height: 10px; animation-delay: 0.6s; }
+  @keyframes wave {
+    0%,100% { transform: scaleY(0.5); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+  .greeting-banner {
+    padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .avatar-mini {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #6FA882, #4A7C59);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(74,124,89,0.25);
+  }
+  .greeting-text { font-size: 18px; color: var(--text); line-height: 1.6; }
+  .greeting-text strong { color: var(--green); font-size: 20px; }
+  nav {
+    flex: 1; padding: 0 16px 20px;
+  }
+  .section-title {
+    font-size: 16px; color: var(--muted);
+    font-weight: 600; margin: 16px 0 12px;
+    padding-left: 4px; letter-spacing: 1px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .menu-item {
+    background: white;
+    border-radius: 20px;
+    padding: 22px 16px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    text-decoration: none;
+  }
+  .menu-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    background: #FAFFFE;
+  }
+  .menu-item.active { border-color: var(--green); background: var(--green-light); }
+  .menu-icon {
+    width: 72px; height: 72px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+  }
+  .icon-green { background: #E8F2EC; }
+  .icon-coral { background: #FAEAE6; }
+  .icon-amber { background: #FDF3E3; }
+  .icon-blue { background: #E6EFF6; }
+  .icon-purple { background: #F0ECFA; }
+  .icon-teal { background: #E3F4F4; }
+  .menu-label {
+    font-size: 18px; font-weight: 700; color: var(--text); text-align: center;
+  }
+  .menu-desc {
+    font-size: 13px; color: var(--muted); text-align: center; line-height: 1.4;
+  }
+  .menu-badge {
+    background: var(--coral); color: white;
+    font-size: 12px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    position: absolute; top: 12px; right: 12px;
+  }
+  .bottom-nav {
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around;
+    padding: 8px 0 12px;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    cursor: pointer; padding: 6px 16px;
+    border-radius: 12px; border: none;
+    background: none; font-family: var(--font);
+    transition: background 0.2s;
+  }
+  .nav-item:hover { background: var(--bg); }
+  .nav-item.active .nav-icon { color: var(--green); }
+  .nav-item.active .nav-label { color: var(--green); font-weight: 700; }
+  .nav-icon { font-size: 24px; color: var(--muted); }
+  .nav-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .fade-enter { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="window.location.href='page2_main.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.5">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+  </button>
+  <div class="header-title">功能菜单</div>
+</header>
+
+<div class="voice-control-bar">
+  <button class="voice-icon" onclick="startVoiceNav()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+    </svg>
+  </button>
+  <div class="voice-text">说出功能名称，直接跳转 ✨</div>
+  <div class="wave-container" id="waves" style="display:none">
+    <div class="wave-bar"></div>
+    <div class="wave-bar"></div>
+    <div class="wave-bar"></div>
+    <div class="wave-bar"></div>
+    <div class="wave-bar"></div>
+  </div>
+</div>
+
+<div class="greeting-banner">
+  <div class="avatar-mini">🧘</div>
+  <div class="greeting-text">
+    下午好，奶奶！<br>
+    <strong>晴晴</strong>在线，请选择您想要的功能
+  </div>
+</div>
+
+<nav class="fade-enter">
+  <div class="section-title">▪ 陪伴与健康</div>
+  <div class="grid">
+    <a class="menu-item active" href="page2_main.html" onclick="speakText('正在前往数字人陪伴')">
+      <div class="menu-icon icon-green">🤖</div>
+      <div class="menu-label">我的数字人</div>
+      <div class="menu-desc">与晴晴聊天互动</div>
+    </a>
+    <a class="menu-item" href="page5_report.html" onclick="speakText('正在前往心理报告页面')">
+      <div class="menu-icon icon-purple">📊</div>
+      <div class="menu-label">心理报告</div>
+      <div class="menu-desc">情绪分析与关怀</div>
+    </a>
+    <a class="menu-item" href="#" onclick="speakText('健康管理功能'); return false;">
+      <div class="menu-icon icon-coral">❤️</div>
+      <div class="menu-label">健康管理</div>
+      <div class="menu-desc">血压血糖用药提醒</div>
+    </a>
+    <a class="menu-item" href="#" onclick="speakText('运动健康功能'); return false;">
+      <div class="menu-icon icon-amber">🏃</div>
+      <div class="menu-label">运动健康</div>
+      <div class="menu-desc">体操广场舞教程</div>
+    </a>
+  </div>
+
+  <div class="section-title">▪ 生活服务</div>
+  <div class="grid">
+    <a class="menu-item" href="page4_customize.html" onclick="speakText('正在前往数字人定制页面')">
+      <div class="menu-icon icon-teal">✨</div>
+      <div class="menu-label">形象定制</div>
+      <div class="menu-desc">个性化数字人外观</div>
+    </a>
+    <a class="menu-item" href="#" onclick="speakText('家庭联络功能'); return false;">
+      <div class="menu-icon icon-blue">👨‍👩‍👧</div>
+      <div class="menu-label">家庭联络</div>
+      <div class="menu-desc">视频通话留言</div>
+    </a>
+    <a class="menu-item" href="page7_memory.html" onclick="speakText('正在前往记忆提醒页面')">
+      <div class="menu-icon icon-blue">📝</div>
+      <div class="menu-label">记忆提醒</div>
+      <div class="menu-desc">记录待办、预约和习惯</div>
+    </a>
+    <a class="menu-item" href="page6_profile.html" onclick="speakText('正在前往个人中心')">
+      <div class="menu-icon icon-green">⚙️</div>
+      <div class="menu-label">个人中心</div>
+      <div class="menu-desc">设置与偏好</div>
+    </a>
+  </div>
+</nav>
+
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="window.location.href='page2_main.html'">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">首页</span>
+  </button>
+  <button class="nav-item active">
+    <span class="nav-icon" style="color:var(--green)">☰</span>
+    <span class="nav-label" style="color:var(--green);font-weight:700">功能</span>
+  </button>
+  <button class="nav-item" onclick="window.location.href='page5_report.html'">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">报告</span>
+  </button>
+  <button class="nav-item" onclick="window.location.href='page6_profile.html'">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">我的</span>
+  </button>
+</nav>
+
+<script>
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+const navMap = {
+  '数字人': 'page2_main.html',
+  '陪伴': 'page2_main.html',
+  '晴晴': 'page2_main.html',
+  '心理报告': 'page5_report.html',
+  '报告': 'page5_report.html',
+  '定制': 'page4_customize.html',
+  '形象': 'page4_customize.html',
+  '设置': 'page6_profile.html',
+  '个人中心': 'page6_profile.html',
+  '记忆提醒': 'page7_memory.html',
+};
+
+function checkLogin() {
+  if (localStorage.getItem('loggedIn') !== '1') {
+    window.location.href = 'page1_login.html';
+  }
+}
+
+window.addEventListener('load', checkLogin);
+
+function startVoiceNav() {
+  const waves = document.getElementById('waves');
+  waves.style.display = 'flex';
+  speakText('请说出您想去的功能，比如：数字人、心理报告、形象定制');
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR();
+    r.lang = 'zh-CN';
+    r.onresult = e => {
+      const result = e.results[0][0].transcript;
+      waves.style.display = 'none';
+      for (const [key, url] of Object.entries(navMap)) {
+        if (result.includes(key)) {
+          speakText('好的，正在前往' + key);
+          setTimeout(() => window.location.href = url, 1000);
+          return;
+        }
+      }
+      speakText('抱歉，没有找到' + result + '，请再试一次');
+    };
+    r.onend = () => waves.style.display = 'none';
+    r.start();
+  } else {
+    setTimeout(() => waves.style.display = 'none', 3000);
+  }
+}
+</script>
+</body>
+</html>

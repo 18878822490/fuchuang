@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 颐心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #FAF8F3;
+    --card: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EC;
+    --green-mid: #6FA882;
+    --coral: #C9674E;
+    --text: #2D2D2D;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --radius: 16px;
+    --font: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  }
+  body {
+    background: var(--bg);
+    font-family: var(--font);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .logo-area {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .logo-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #4A7C59, #6FA882);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 24px rgba(74,124,89,0.25);
+  }
+  .logo-icon svg { width: 44px; height: 44px; fill: white; }
+  .app-name {
+    font-size: 32px; font-weight: 700; color: var(--green);
+    letter-spacing: 4px;
+  }
+  .app-slogan {
+    font-size: 16px; color: var(--muted); margin-top: 6px; letter-spacing: 1px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 40px 36px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  }
+  .card-title {
+    font-size: 22px; font-weight: 700; color: var(--text);
+    margin-bottom: 28px; text-align: center;
+  }
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block; font-size: 18px; font-weight: 600;
+    color: var(--text); margin-bottom: 8px;
+  }
+  .field-row { display: flex; gap: 12px; }
+  .input-wrap { position: relative; flex: 1; }
+  .input-icon {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; color: var(--muted);
+  }
+  input[type="tel"], input[type="text"] {
+    width: 100%; height: 56px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 20px; font-weight: 600;
+    font-family: var(--font);
+    color: var(--text);
+    padding: 0 16px 0 50px;
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 2px;
+  }
+  input:focus { border-color: var(--green); background: white; }
+  input::placeholder { color: #BBBBBB; font-weight: 400; letter-spacing: 0; }
+  .btn-code {
+    height: 56px; min-width: 130px;
+    background: var(--green-light);
+    color: var(--green);
+    border: 2px solid var(--green-mid);
+    border-radius: var(--radius);
+    font-size: 17px; font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-code:hover { background: var(--green-mid); color: white; }
+  .btn-code:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-login {
+    width: 100%; height: 62px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 22px; font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(74,124,89,0.3);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-login:hover { background: #3a6347; transform: translateY(-1px); }
+  .btn-login:active { transform: translateY(0); }
+  .divider {
+    text-align: center; margin: 24px 0;
+    position: relative;
+  }
+  .divider::before {
+    content: '';
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--border);
+  }
+  .divider span {
+    background: white; padding: 0 12px;
+    position: relative; color: var(--muted); font-size: 15px;
+  }
+  .btn-child {
+    width: 100%; height: 54px;
+    background: white;
+    color: var(--coral);
+    border: 2px solid #ECC4B8;
+    border-radius: var(--radius);
+    font-size: 18px; font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-child:hover { background: #FDF2EF; border-color: var(--coral); }
+  .voice-hint {
+    text-align: center; margin-top: 20px;
+    font-size: 15px; color: var(--muted);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .voice-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+  .error-msg {
+    color: var(--coral); font-size: 15px; margin-top: 6px;
+    display: none; padding-left: 4px;
+  }
+  .success-toast {
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: white;
+    padding: 14px 32px; border-radius: 40px;
+    font-size: 17px; font-weight: 600;
+    display: none; z-index: 999;
+    box-shadow: 0 4px 16px rgba(74,124,89,0.4);
+  }
+  .btn-voice-read {
+    background: none; border: none; cursor: pointer;
+    color: var(--green); font-size: 22px;
+    padding: 4px; margin-left: 4px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="logo-area">
+  <div class="logo-icon">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4zm0 8a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 26c-5 0-9.5-2.3-12.4-5.9C13.6 29.5 18.5 28 24 28s10.4 1.5 12.4 3.1C33.5 34.7 29 37 24 38z"/>
+    </svg>
+  </div>
+  <div class="app-name">颐 心</div>
+  <div class="app-slogan">您的专属数字人陪伴</div>
+</div>
+
+<div class="card">
+  <div class="card-title">
+    欢迎回家
+    <button class="btn-voice-read" onclick="speakText('欢迎回家，请输入您的手机号码登录')" title="语音朗读">🔊</button>
+  </div>
+
+  <div class="field">
+    <label>手机号码</label>
+    <div class="input-wrap">
+      <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.9 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+      </svg>
+      <input type="tel" id="phone" maxlength="11" placeholder="请输入手机号" oninput="validatePhone()" autocomplete="tel">
+    </div>
+    <div class="error-msg" id="phone-err">请输入正确的11位手机号码</div>
+  </div>
+
+  <div class="field">
+    <label>验证码</label>
+    <div class="field-row">
+      <div class="input-wrap">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        
+        <input type="text" id="code" maxlength="6" placeholder="6位验证码" oninput="validateCode()">
+      </div>
+      <button class="btn-code" id="btn-code" onclick="sendCode()">获取验证码</button>
+    </div>
+    <div class="error-msg" id="code-err">验证码格式不正确</div>
+    <div class="error-msg" id="code-note" style="display:none;color:#4A7C59;">当前为演示模式，验证码为 123456</div>
+  </div>
+
+  <button class="btn-login" onclick="doLogin()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+      <polyline points="10,17 15,12 10,7"/>
+      <line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+    一键登录
+  </button>
+
+  <div class="divider"><span>或者</span></div>
+
+  <button class="btn-child" onclick="goRegister()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    子女协助注册
+  </button>
+
+  <div class="voice-hint">
+    <span class="voice-dot"></span>
+    支持语音输入，点击🔊可朗读说明
+  </div>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script>
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.85; u.pitch = 1;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+function validatePhone() {
+  const v = document.getElementById('phone').value;
+  const err = document.getElementById('phone-err');
+  const ok = /^1[3-9]\d{9}$/.test(v);
+  err.style.display = (!ok && v.length === 11) ? 'block' : 'none';
+  return ok;
+}
+
+function validateCode() {
+  const v = document.getElementById('code').value;
+  const err = document.getElementById('code-err');
+  const ok = /^\d{6}$/.test(v);
+  err.style.display = (!ok && v.length >= 4) ? 'block' : 'none';
+  return ok;
+}
+
+let timer = null;
+async function sendCode() {
+  if (!validatePhone()) {
+    speakText('请先输入正确的手机号码');
+    showToast('请先输入正确的手机号码');
+    return;
+  }
+  const btn = document.getElementById('btn-code');
+  btn.disabled = true;
+  try {
+    const response = await fetch('/api/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: document.getElementById('phone').value })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || '发送验证码失败');
+    }
+    const note = document.getElementById('code-note');
+    note.textContent = '当前为演示模式，验证码为 ' + result.code;
+    note.style.display = 'block';
+    speakText('验证码已发送，请查看页面提示');
+    showToast('验证码已发送 ✓，演示码：' + result.code);
+  } catch (error) {
+    speakText(error.message);
+    showToast(error.message);
+    btn.disabled = false;
+    return;
+  }
+  let count = 60;
+  timer = setInterval(() => {
+    btn.textContent = count + '秒后重发';
+    count--;
+    if (count < 0) {
+      clearInterval(timer);
+      btn.textContent = '重新获取';
+      btn.disabled = false;
+    }
+  }, 1000);
+}
+
+async function doLogin() {
+  const phone = document.getElementById('phone').value;
+  const code = document.getElementById('code').value;
+  if (!validatePhone()) { speakText('手机号码格式不正确，请重新输入'); showToast('手机号码格式不正确'); return; }
+  if (!/^\d{6}$/.test(code)) { speakText('请输入六位数字验证码'); showToast('请输入六位数字验证码'); return; }
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, code })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || '登录失败');
+    }
+    localStorage.setItem('loggedIn', '1');
+    localStorage.setItem('userPhone', phone);
+    speakText('登录成功，欢迎回家');
+    showToast('登录成功，欢迎回家 ❤️');
+    setTimeout(() => { window.location.href = 'page2_main.html'; }, 1200);
+  } catch (error) {
+    speakText(error.message);
+    showToast(error.message);
+  }
+}
+
+function goRegister() {
+  speakText('子女协助注册功能正在建设中，请稍后使用');
+  showToast('子女协助注册功能暂未接入');
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('userPhone');
+  if (saved) document.getElementById('phone').value = saved;
+});
+</script>
+</body>
+</html>

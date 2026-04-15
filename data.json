@@ -1,0 +1,135 @@
+{
+  "settings": {
+    "vol": "41",
+    "speed": "140",
+    "simpleMode": false,
+    "fontSize": "23",
+    "voiceEnabled": true,
+    "contrastMode": false,
+    "nightMode": false
+  },
+  "avatarConfig": {
+    "preset": 5,
+    "outfit": "sport",
+    "bg": "room",
+    "voice": "calm",
+    "hairStyle": "waves",
+    "texture": "floral"
+  },
+  "profile": {
+    "name": "李奶奶",
+    "phone": "13888888888",
+    "vip": true,
+    "activeDays": 127,
+    "familyCount": 2
+  },
+  "report": {
+    "metrics": {
+      "mood": 82,
+      "sleep": 7.5,
+      "energy": 68
+    },
+    "daily": {
+      "labels": [
+        "6时",
+        "9时",
+        "12时",
+        "15时",
+        "18时",
+        "21时"
+      ],
+      "values": [
+        65,
+        72,
+        78,
+        82,
+        75,
+        80
+      ]
+    },
+    "weekly": {
+      "labels": [
+        "周一",
+        "周二",
+        "周三",
+        "周四",
+        "周五",
+        "周六",
+        "周日"
+      ],
+      "values": [
+        70,
+        75,
+        68,
+        82,
+        79,
+        85,
+        80
+      ]
+    }
+  },
+  "memories": [
+    {
+      "id": "1776258691982-nj3ce5",
+      "text": "明天早起",
+      "time": null,
+      "createdAt": "2026-04-15T13:11:31.982Z"
+    },
+    {
+      "id": "1776258199345-92c1pz",
+      "text": "早上是带你",
+      "time": null,
+      "createdAt": "2026-04-15T13:03:19.345Z"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "1776258217891-82lruf",
+      "text": "吃药",
+      "time": "2026-04-24T13:03:00.000Z",
+      "createdAt": "2026-04-15T13:03:37.891Z"
+    },
+    {
+      "id": "1776258720081-mmjw3q",
+      "text": "下午吃药",
+      "time": "2026-04-24T10:11:00.000Z",
+      "createdAt": "2026-04-15T13:12:00.081Z"
+    }
+  ],
+  "avatarOutfits": [
+    {
+      "id": "qipao",
+      "label": "传统旗袍",
+      "description": "优雅温婉，适合陪伴场景"
+    },
+    {
+      "id": "modern",
+      "label": "现代简约",
+      "description": "舒适清新，贴心自然"
+    },
+    {
+      "id": "sport",
+      "label": "运动休闲",
+      "description": "轻松活力，乐于相伴"
+    },
+    {
+      "id": "tang",
+      "label": "唐装汉服",
+      "description": "古典雅致，亲切温柔"
+    },
+    {
+      "id": "formal",
+      "label": "正式商务",
+      "description": "稳重得体，信赖感强"
+    }
+  ],
+  "codes": {
+    "18878822490": "123456"
+  },
+  "sessions": {
+    "18878822490": {
+      "phone": "18878822490",
+      "lastLogin": 1776260837915
+    }
+  }
+}
